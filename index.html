@@ -518,6 +518,7 @@ function on(id, evt, fn){ const el = document.getElementById(id); if(el) el.addE
 ============================================================ */
 const FIXED_SHEET_URL = 'https://docs.google.com/spreadsheets/d/1NOWb0jReQTtEOEl4sQNzUu25IooXfTsi7fk09fNnL6E/edit?usp=sharing';
 const FIXED_SHEET_TAB = 'PRODUTOS CONSOLIDADOS';
+const FIXED_SHEET_GID = '1656302592'; // gid da aba PRODUTOS CONSOLIDADOS (usado pelo endpoint /export)
 
 let DATA = [];
 let LAST_UPDATED = null, LAST_SYNC = null, SHEET_URL = null, SHEET_URL_RAW = null, SHEET_TAB = null, SYNC_ERROR = null, LAST_SYNC_SKIPPED = 0;
@@ -616,7 +617,7 @@ async function loadData(){
   if(!SHEET_URL && FIXED_SHEET_URL){
     SHEET_URL_RAW = FIXED_SHEET_URL;
     SHEET_TAB = FIXED_SHEET_TAB || null;
-    SHEET_URL = normalizeSheetUrl(FIXED_SHEET_URL, FIXED_SHEET_TAB);
+    SHEET_URL = normalizeSheetUrl(FIXED_SHEET_URL, FIXED_SHEET_TAB, FIXED_SHEET_GID);
   }
 
   renderAll();
@@ -667,28 +668,33 @@ function parseCSV(text){
 }
 /* ============================================================
    NORMALIZA LINK DO GOOGLE SHEETS
-   Aceita: link de edição, link publicado, ou já-CSV.
-   Converte tudo para o endpoint gviz que devolve CSV a partir
-   de uma planilha compartilhada como "qualquer um com o link".
+   Converte o link de compartilhamento para um endpoint CSV.
+   Preferimos /export?format=csv&gid=... porque o gviz às vezes
+   devolve o conteúdo malformado (sem vírgulas) dependendo da
+   estrutura da aba. O /export é mais robusto. Se não houver gid,
+   caímos no gviz por nome de aba como alternativa.
 ============================================================ */
-function normalizeSheetUrl(raw, sheetName){
+function normalizeSheetUrl(raw, sheetName, gidHint){
   const url = (raw||'').trim();
   if(!url) return url;
   const tab = (sheetName||'').trim();
   // já é um endpoint CSV? usa como está (respeita o que a pessoa colou)
   if(/output=csv|tqx=out:csv|format=csv/.test(url)) return url;
-  // link de edição/compartilhamento: extrai o ID
   const idMatch = url.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
   if(idMatch){
     const id = idMatch[1];
+    // 1) gid explícito (do parâmetro fixo ou do próprio link) → /export, o mais confiável
+    const gidMatch = url.match(/[#&?]gid=(\d+)/);
+    const gid = (gidHint && String(gidHint)) || (gidMatch && gidMatch[1]);
+    if(gid){
+      return `https://docs.google.com/spreadsheets/d/${id}/export?format=csv&gid=${gid}`;
+    }
+    // 2) sem gid, mas com nome de aba → gviz por nome
     if(tab){
-      // seleciona a aba pelo NOME — mais robusto que gid
       return `https://docs.google.com/spreadsheets/d/${id}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(tab)}`;
     }
-    // sem nome de aba: usa o gid do link, ou a primeira aba
-    const gidMatch = url.match(/[#&?]gid=(\d+)/);
-    const gid = gidMatch ? gidMatch[1] : '0';
-    return `https://docs.google.com/spreadsheets/d/${id}/gviz/tq?tqx=out:csv&gid=${gid}`;
+    // 3) nada: primeira aba via export
+    return `https://docs.google.com/spreadsheets/d/${id}/export?format=csv&gid=0`;
   }
   return url;
 }
