@@ -391,10 +391,6 @@ a{ color:inherit; text-decoration:none; }
       <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
       Produtos
     </div>
-    <div class="sb-item" data-view="importacoes">
-      <svg viewBox="0 0 24 24"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M4 19h16"/></svg>
-      Importações
-    </div>
     <div class="sb-item" data-view="alertas">
       <svg viewBox="0 0 24 24"><path d="M12 2l9 16H3z"/><path d="M12 9v4"/><path d="M12 16.5v.1"/></svg>
       Alertas
@@ -403,10 +399,6 @@ a{ color:inherit; text-decoration:none; }
     <div class="sb-item" data-view="historico">
       <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
       Histórico
-    </div>
-    <div class="sb-item" data-view="config">
-      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 00.3 1.9l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.7 1.7 0 00-1.9-.3 1.7 1.7 0 00-1 1.5V21a2 2 0 11-4 0v-.1a1.7 1.7 0 00-1-1.6 1.7 1.7 0 00-1.9.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.7 1.7 0 00.3-1.9 1.7 1.7 0 00-1.5-1H3a2 2 0 110-4h.1a1.7 1.7 0 001.5-1 1.7 1.7 0 00-.3-1.9l-.1-.1a2 2 0 112.8-2.8l.1.1a1.7 1.7 0 001.9.3H9a1.7 1.7 0 001-1.5V3a2 2 0 114 0v.1a1.7 1.7 0 001 1.5 1.7 1.7 0 001.9-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.7 1.7 0 00-.3 1.9V9a1.7 1.7 0 001.5 1h.1a2 2 0 110 4h-.1a1.7 1.7 0 00-1.5 1z"/></svg>
-      Configurações
     </div>
   </nav>
   <div class="sb-foot">Dellamed · Marketing<br>Torre de Controle Logística</div>
@@ -420,8 +412,7 @@ a{ color:inherit; text-decoration:none; }
     </div>
     <div class="tb-right">
       <div class="search-box"><span style="color:var(--text-3);font-size:13px;">⌕</span><input type="text" id="globalSearch" placeholder="Buscar código ou nome…"></div>
-      <div class="status-pill" id="statusPill" title="Clique para sincronizar agora"><span class="status-dot" id="statusDot"></span><span id="lastUpdate">carregando…</span></div>
-      <button class="btn primary" id="btnAdd">+ Nova chegada</button>
+      <div class="status-pill" id="statusPill" title="Sincronizado com a planilha"><span class="status-dot" id="statusDot"></span><span id="lastUpdate">carregando…</span></div>
     </div>
   </div>
 
@@ -472,58 +463,6 @@ a{ color:inherit; text-decoration:none; }
       <div class="list" id="catalogList"></div>
     </section>
 
-    <!-- ========== IMPORTAÇÕES ========== -->
-    <section class="view" id="view-importacoes">
-      <div class="grid-2" style="align-items:start;">
-        <div class="panel">
-          <div class="panel-head"><div class="panel-title">Colar da planilha</div></div>
-          <p class="hint" style="margin-bottom:14px;">Copie as colunas <strong>Código, Nome, Data de chegada, Tipo</strong> (e opcionalmente <strong>URL da foto</strong>) direto do Excel/Sheets, nesta ordem, e cole abaixo.</p>
-          <div class="form-field full">
-            <textarea id="bulkText" placeholder="4700001782&#9;Kit DX Home&#9;16/03/2026&#9;Novo
-4700001828&#9;Cadeira de Banho D55&#9;08/04/2026&#9;Melhoria"></textarea>
-          </div>
-          <div class="form-field full" style="margin-top:10px;">
-            <label style="display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:500;text-transform:none;letter-spacing:0;">
-              <input type="checkbox" id="replaceAll" style="width:auto;"> Substituir todos os dados existentes
-            </label>
-          </div>
-          <div class="import-status" id="importStatus"></div>
-          <div class="modal-actions" style="justify-content:flex-start;">
-            <button class="btn primary" id="saveBulk">Importar</button>
-          </div>
-        </div>
-
-        <div class="panel">
-          <div class="panel-head"><div class="panel-title">Adicionar 1 item</div></div>
-          <div class="form-grid">
-            <div class="form-field"><label>Código</label><input type="text" id="fCodigo" placeholder="Ex: 4700001782"></div>
-            <div class="form-field"><label>Data de chegada</label><input type="text" id="fData" placeholder="DD/MM/AAAA"></div>
-            <div class="form-field full"><label>Nome do produto</label><input type="text" id="fNome" placeholder="Ex: Cadeira de Rodas D100"></div>
-            <div class="form-field">
-              <label>Tipo</label>
-              <select id="fTipo"><option value="Novo">Novo</option><option value="Melhoria">Melhoria</option><option value="Reposição">Reposição</option></select>
-            </div>
-            <div class="form-field"><label>Quantidade (opcional)</label><input type="text" id="fQtd" placeholder="Ex: 120"></div>
-            <div class="form-field full">
-              <label>Etapa atual (opcional)</label>
-              <select id="fEtapa">
-                <option value="">Automático (por data)</option>
-                <option value="pedido">Pedido realizado</option>
-                <option value="producao">Produção</option>
-                <option value="transporte">Em transporte</option>
-                <option value="chegada_br">Chegada ao Brasil</option>
-                <option value="cd">CD Dellamed</option>
-                <option value="disponivel">Disponível</option>
-              </select>
-            </div>
-            <div class="form-field full"><label>URL da foto (opcional)</label><input type="text" id="fFoto" placeholder="https://..."></div>
-          </div>
-          <div class="modal-actions" style="justify-content:flex-start;">
-            <button class="btn primary" id="saveSingleInline">Salvar</button>
-          </div>
-        </div>
-      </div>
-    </section>
 
     <!-- ========== ALERTAS ========== -->
     <section class="view" id="view-alertas">
@@ -535,74 +474,10 @@ a{ color:inherit; text-decoration:none; }
       <div class="list" id="histList"></div>
     </section>
 
-    <!-- ========== CONFIGURAÇÕES ========== -->
-    <section class="view" id="view-config">
-      <div class="panel" style="max-width:680px; margin-bottom:16px;">
-        <div class="panel-head"><div class="panel-title">Sincronização automática com a planilha</div></div>
-        <p class="hint">Cole o link da sua planilha Google e o painel busca os dados sozinho toda vez que alguém abrir esta página. Basta a planilha estar compartilhada como <strong>"qualquer pessoa com o link pode ver"</strong>.</p>
-        <ol style="font-size:12.5px; color:var(--text-2); line-height:1.9; padding-left:18px; margin:14px 0;">
-          <li>Na planilha, deixe a aba de lançamentos com colunas de <strong>código, nome do produto, data e status/tipo</strong> (o painel reconhece pelos nomes do cabeçalho — a ordem pode variar).</li>
-          <li>Datas no formato <strong>DD/MM/AAAA</strong>.</li>
-          <li>No Google Sheets: <strong>Compartilhar → Qualquer pessoa com o link → Leitor</strong>.</li>
-          <li>Copie o link normal da planilha, cole abaixo e informe o nome da aba. Não precisa "Publicar na Web".</li>
-        </ol>
-        <div class="form-field full"><label>Link da planilha Google</label><input type="text" id="fSheetUrl" placeholder="https://docs.google.com/spreadsheets/d/..."></div>
-        <div class="form-field full" style="margin-top:12px;"><label>Nome da aba (opcional, mas recomendado)</label><input type="text" id="fSheetTab" placeholder="Ex: PRODUTOS CONSOLIDADOS"></div>
-        <p class="hint" style="color:var(--amber); margin-top:10px;">Com "qualquer pessoa com o link", quem tiver o endereço vê os dados sem login. Use apenas se isso for aceitável para essa aba.</p>
-        <div id="sourceStatus" class="hint" style="margin-top:10px;"></div>
-        <div class="modal-actions" style="justify-content:space-between;">
-          <button class="btn ghost-danger" id="btnRemoveSource">Remover fonte</button>
-          <div style="display:flex; gap:10px;">
-            <button class="btn" id="btnSyncNow">Sincronizar agora</button>
-            <button class="btn primary" id="saveSource">Salvar e sincronizar</button>
-          </div>
-        </div>
-      </div>
-
-      <div class="panel" style="max-width:680px;">
-        <div class="panel-head"><div class="panel-title">Backup e importação de arquivo</div></div>
-        <p class="hint">Baixe todos os dados atuais do painel como um arquivo CSV, ou carregue um arquivo CSV do seu computador para dentro do painel.</p>
-        <div class="modal-actions" style="justify-content:flex-start; margin-top:16px; gap:10px;">
-          <button class="btn primary" id="btnDownloadCsv">⬇ Baixar CSV atual</button>
-          <button class="btn" id="btnUploadCsv">⬆ Carregar arquivo CSV</button>
-          <input type="file" id="fileInput" accept=".csv,text/csv" style="display:none;">
-        </div>
-        <div class="form-field full" style="margin-top:14px;">
-          <label style="display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:500;text-transform:none;letter-spacing:0;">
-            <input type="checkbox" id="uploadReplace" style="width:auto;"> Substituir todos os dados ao carregar (em vez de adicionar)
-          </label>
-        </div>
-        <div id="fileStatus" class="hint" style="margin-top:6px;"></div>
-      </div>
-    </section>
 
   </div>
   <div style="padding:10px 32px 18px; font-size:11px; color:var(--text-3); display:flex; justify-content:space-between;">
     <span>Dellamed · Marketing</span><span id="totalCount"></span>
-  </div>
-</div>
-
-<!-- MODAL: ADICIONAR RÁPIDO -->
-<div class="overlay" id="overlay">
-  <div class="modal">
-    <button class="btn icon-only modal-close" id="closeModal">✕</button>
-    <h2>Nova chegada</h2>
-    <p class="hint">Preencha os dados do produto que chegou ou vai chegar no CD.</p>
-    <div class="form-grid">
-      <div class="form-field"><label>Código</label><input type="text" id="mCodigo" placeholder="Ex: 4700001782"></div>
-      <div class="form-field"><label>Data de chegada</label><input type="text" id="mData" placeholder="DD/MM/AAAA"></div>
-      <div class="form-field full"><label>Nome do produto</label><input type="text" id="mNome" placeholder="Ex: Cadeira de Rodas D100"></div>
-      <div class="form-field">
-        <label>Tipo</label>
-        <select id="mTipo"><option value="Novo">Novo</option><option value="Melhoria">Melhoria</option><option value="Reposição">Reposição</option></select>
-      </div>
-      <div class="form-field"><label>Quantidade (opcional)</label><input type="text" id="mQtd" placeholder="Ex: 120"></div>
-      <div class="form-field full"><label>URL da foto (opcional)</label><input type="text" id="mFoto" placeholder="https://..."></div>
-    </div>
-    <div class="modal-actions">
-      <button class="btn" id="cancelSingle">Cancelar</button>
-      <button class="btn primary" id="saveSingle">Salvar</button>
-    </div>
   </div>
 </div>
 
@@ -625,6 +500,15 @@ const MONTH_NAMES = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julh
 const STAGES = ['pedido','producao','transporte','chegada_br','cd','disponivel'];
 const STAGE_LABELS = { pedido:'Pedido realizado', producao:'Produção', transporte:'Em transporte', chegada_br:'Chegada ao Brasil', cd:'CD Dellamed', disponivel:'Disponível' };
 const STAGE_STATUS = { pedido:'gray', producao:'gray', transporte:'amber', chegada_br:'amber', cd:'blue', disponivel:'green' };
+
+/* ============================================================
+   MODO SOMENTE LEITURA
+   O painel é apenas de consulta. Toda a edição é feita
+   direto na planilha Google. Nada aqui altera os dados.
+============================================================ */
+const READ_ONLY = true;
+// Liga um evento só se o elemento existir (no modo leitor, botões de edição não existem).
+function on(id, evt, fn){ const el = document.getElementById(id); if(el) el.addEventListener(evt, fn); }
 
 /* ============================================================
    FONTE FIXA DA PLANILHA (embutida no painel)
@@ -934,7 +818,7 @@ async function syncFromSheet(silent){
   } catch(e){
     SYNC_ERROR = e.message || 'erro desconhecido';
     refreshStatusPill();
-    if(!silent) updateSourceStatus();
+    if(!silent && typeof updateSourceStatus === 'function') updateSourceStatus();
   } finally { if(dot) dot.classList.remove('syncing'); }
 }
 
@@ -993,7 +877,7 @@ function renderNextCard(){
   const upcoming = DATA.filter(r => r.data >= today).sort((a,b) => a.data.localeCompare(b.data));
   const wrap = document.getElementById('nextCardWrap');
   if(upcoming.length===0){
-    wrap.innerHTML = `<div class="empty-state"><div class="big">Nenhuma chegada prevista</div><div>Importe dados ou adicione uma nova chegada.</div><button class="btn primary" onclick="openModal()">+ Nova chegada</button></div>`;
+    wrap.innerHTML = `<div class="empty-state"><div class="big">Nenhuma chegada prevista</div><div>Os dados são atualizados automaticamente a partir da planilha.</div></div>`;
     return;
   }
   const r = upcoming[0];
@@ -1116,7 +1000,7 @@ function renderChegadasList(){
   const list = document.getElementById('chegadasList');
 
   if(rows.length===0){
-    list.innerHTML = `<div class="empty-state"><div class="big">Nenhum produto neste filtro</div><div>Ajuste os filtros ou adicione uma nova chegada.</div><button class="btn primary" onclick="openModal()">+ Nova chegada</button></div>`;
+    list.innerHTML = `<div class="empty-state"><div class="big">Nenhum produto neste filtro</div><div>Ajuste os filtros acima para ver outras chegadas.</div></div>`;
     return;
   }
   list.innerHTML = `
@@ -1132,11 +1016,10 @@ function renderChegadasList(){
         <div class="row-date c-date">${fmtBR(r.data)}</div>
         <div class="c-tipo"><span class="type-badge ${typeClass}">${r.tipo}</span></div>
         <div class="c-stage2"><span class="status ${STAGE_STATUS[stage]}"><span class="dot"></span>${STAGE_LABELS[stage]}</span></div>
-        <div style="text-align:right;"><button class="btn icon-only small" data-del="${r.id}" title="Remover" style="width:28px;height:28px;">✕</button></div>
+        <div></div>
       </div>`;
   }).join('');
   list.querySelectorAll('.list-row[data-id]').forEach(el => el.addEventListener('click', e => { if(e.target.closest('[data-del]')) return; openDetail(el.dataset.id); }));
-  list.querySelectorAll('[data-del]').forEach(btn => btn.addEventListener('click', e => { e.stopPropagation(); deleteRow(btn.dataset.del); }));
 }
 
 /* ============================================================
@@ -1194,11 +1077,10 @@ function renderHistory(){
         <div class="row-date c-date">${fmtBR(r.data)}</div>
         <div class="c-tipo"><span class="type-badge ${typeClass}">${r.tipo}</span></div>
         <div class="c-stage2"><span class="status green"><span class="dot"></span>Recebido</span></div>
-        <div style="text-align:right;"><button class="btn icon-only small" data-del="${r.id}" title="Remover" style="width:28px;height:28px;">✕</button></div>
+        <div></div>
       </div>`;
   }).join('');
   wrap.querySelectorAll('.list-row[data-id]').forEach(el => el.addEventListener('click', e => { if(e.target.closest('[data-del]')) return; openDetail(el.dataset.id); }));
-  wrap.querySelectorAll('[data-del]').forEach(btn => btn.addEventListener('click', e => { e.stopPropagation(); deleteRow(btn.dataset.del); }));
 }
 
 /* ============================================================
@@ -1267,14 +1149,12 @@ function openDetail(id){
         <div class="detail-item"><div class="l">Destino</div><div class="v">CD Dellamed</div></div>
       </div>
       <div class="detail-actions">
-        <button class="btn ghost-danger" id="deleteDetail">Remover</button>
         <button class="btn primary" id="closeDetail2">Fechar</button>
       </div>
     </div>`;
   document.getElementById('detailOverlay').classList.add('show');
   document.getElementById('closeDetail').addEventListener('click', closeDetail);
   document.getElementById('closeDetail2').addEventListener('click', closeDetail);
-  document.getElementById('deleteDetail').addEventListener('click', () => { deleteRow(id); closeDetail(); });
 }
 function closeDetail(){ document.getElementById('detailOverlay').classList.remove('show'); }
 document.getElementById('detailOverlay').addEventListener('click', e => { if(e.target.id==='detailOverlay') closeDetail(); });
@@ -1322,6 +1202,13 @@ document.getElementById('globalSearch').addEventListener('input', e => {
   renderCatalog();
 });
 
+
+/* ============================================================
+   HANDLERS DE EDIÇÃO — só ativos fora do modo leitor.
+   No modo leitor (READ_ONLY = true) nada disto roda,
+   e os elementos correspondentes nem existem no HTML.
+============================================================ */
+if(!READ_ONLY){
 /* ============================================================
    MODAL: ADICIONAR RÁPIDO
 ============================================================ */
@@ -1397,6 +1284,7 @@ document.getElementById('saveBulk').addEventListener('click', async () => {
 ============================================================ */
 function updateSourceStatus(){
   const el = document.getElementById('sourceStatus');
+  if(!el) return; // modo leitor: painel de config não existe
   if(!SHEET_URL){ el.textContent = 'Nenhuma fonte automática configurada ainda.'; el.style.color=''; return; }
   if(SYNC_ERROR){ el.innerHTML = `Última tentativa falhou: ${SYNC_ERROR}`; el.style.color = 'var(--red)'; return; }
   const sheetCount = DATA.filter(r => r.source==='sheet').length;
@@ -1519,12 +1407,21 @@ document.getElementById('fileInput').addEventListener('change', (e) => {
   reader.onerror = () => { statusEl.style.color='var(--red)'; statusEl.textContent='Não foi possível ler o arquivo.'; };
   reader.readAsText(file, 'utf-8');
 });
+} // fim dos handlers de edição
 
 /* ============================================================
    INIT
 ============================================================ */
-document.getElementById('fSheetUrl').addEventListener('focus', updateSourceStatus);
-loadData().then(() => { updateSourceStatus(); document.getElementById('fSheetUrl').value = SHEET_URL_RAW || SHEET_URL || ''; document.getElementById('fSheetTab').value = SHEET_TAB || ''; });
+if(!READ_ONLY){
+  on('fSheetUrl', 'focus', updateSourceStatus);
+  loadData().then(() => {
+    updateSourceStatus();
+    const u = document.getElementById('fSheetUrl'); if(u) u.value = SHEET_URL_RAW || SHEET_URL || '';
+    const t = document.getElementById('fSheetTab'); if(t) t.value = SHEET_TAB || '';
+  });
+} else {
+  loadData();
+}
 
 </script>
 </body>
