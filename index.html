@@ -573,11 +573,40 @@ const ICONS = {
 /* ============================================================
    STORAGE
 ============================================================ */
+/* ============================================================
+   STORAGE
+   Camada que funciona em qualquer lugar: usa o window.storage
+   da plataforma Anthropic quando existir (claude.ai) e cai para
+   o localStorage do navegador em qualquer outro host (GitHub
+   Pages, SharePoint, etc.). Sem isto, o painel quebrava fora
+   do claude.ai porque window.storage não existe lá.
+============================================================ */
+const store = {
+  async get(key){
+    try{
+      if(typeof window !== 'undefined' && window.storage && window.storage.get){
+        const res = await window.storage.get(key, true);
+        return res && res.value ? res.value : null;
+      }
+    }catch(_){}
+    try{ return localStorage.getItem(key); }catch(_){ return null; }
+  },
+  async set(key, value){
+    try{
+      if(typeof window !== 'undefined' && window.storage && window.storage.set){
+        await window.storage.set(key, value, true);
+        return;
+      }
+    }catch(_){}
+    try{ localStorage.setItem(key, value); }catch(_){}
+  }
+};
+
 async function loadData(){
   try{
-    const res = await window.storage.get(STORAGE_KEY, true);
-    if(res && res.value){
-      const parsed = JSON.parse(res.value);
+    const raw = await store.get(STORAGE_KEY);
+    if(raw){
+      const parsed = JSON.parse(raw);
       if(Array.isArray(parsed)){ DATA = parsed; LAST_UPDATED=null; SHEET_URL=null; LAST_SYNC=null; }
       else { DATA = parsed.rows||[]; LAST_UPDATED = parsed.lastUpdated||null; SHEET_URL = parsed.sheetUrl||null; SHEET_URL_RAW = parsed.sheetUrlRaw||null; SHEET_TAB = parsed.sheetTab||null; LAST_SYNC = parsed.lastSync||null; }
     } else { DATA=[]; LAST_UPDATED=null; SHEET_URL=null; LAST_SYNC=null; }
@@ -595,7 +624,7 @@ async function loadData(){
 }
 async function saveData(){
   LAST_UPDATED = new Date().toISOString();
-  await window.storage.set(STORAGE_KEY, JSON.stringify({ rows:DATA, lastUpdated:LAST_UPDATED, sheetUrl:SHEET_URL, sheetUrlRaw:SHEET_URL_RAW, sheetTab:SHEET_TAB, lastSync:LAST_SYNC }), true);
+  await store.set(STORAGE_KEY, JSON.stringify({ rows:DATA, lastUpdated:LAST_UPDATED, sheetUrl:SHEET_URL, sheetUrlRaw:SHEET_URL_RAW, sheetTab:SHEET_TAB, lastSync:LAST_SYNC }));
   refreshStatusPill();
 }
 function refreshStatusPill(){
