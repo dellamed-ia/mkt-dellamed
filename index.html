@@ -843,7 +843,7 @@ async function syncFromSheet(silent){
         const key = codigo+'|'+iso;
         if(seen.has(key)) return;
         seen.add(key);
-        sheetRows.push({ id:'sheet_'+key.replace(/[^a-zA-Z0-9]/g,'_'), codigo, nome, data:iso, tipo:normalizeTipo(tipoRaw), foto:(fotoRaw||'').trim(), quantidade:null, etapa:null, source:'sheet' });
+        sheetRows.push({ id:'sheet_'+key.replace(/[^a-zA-Z0-9]/g,'_'), codigo, nome, data:iso, tipo:normalizeTipo(tipoRaw), status:(tipoRaw||'').trim(), foto:(fotoRaw||'').trim(), quantidade:null, etapa:null, source:'sheet' });
       });
     }
     DATA = DATA.filter(r => r.source!=='sheet').concat(sheetRows);
@@ -884,24 +884,53 @@ function renderAll(){
 function renderKPIs(){
   const today = todayISO();
   const upcoming = DATA.filter(r => r.data >= today);
-  const novos = upcoming.filter(r => r.tipo==='Novo');
-  const melhorias = upcoming.filter(r => r.tipo==='Melhoria');
-  const emTransporte = upcoming.filter(r => computeStage(r).stage==='transporte' || computeStage(r).stage==='producao');
+
+  // Total de produtos (todos os registros do painel)
+  const totalProdutos = DATA.length;
+
+  // Data prevista mais recente a partir de hoje (a última a chegar) + produto dessa data
+  const futuros = upcoming.slice().sort((a,b) => b.data.localeCompare(a.data));
+  const maisDistante = futuros[0] || null;
+
+  // Total por status — usa o texto original da coluna Status da planilha
+  const statusCount = {};
+  DATA.forEach(r => {
+    const s = (r.status && r.status.trim()) ? r.status.trim() : (r.tipo || '—');
+    statusCount[s] = (statusCount[s]||0) + 1;
+  });
+  const statusEntries = Object.entries(statusCount).sort((a,b) => b[1]-a[1]);
 
   const iconSvg = p => `<svg viewBox="0 0 24 24">${p}</svg>`;
-  const cards = [
-    { hero:true, label:'Chegadas no mês', value: upcoming.filter(r=>monthKey(r.data)===today.slice(0,7)).length, sub:`${upcoming.length} previstas no total`, icon: ICONS.box },
-    { label:'Produtos novos', value: novos.length, sub:'lançamentos a caminho', icon:`<path d="M12 2l2.5 6.5L21 11l-6.5 2.5L12 20l-2.5-6.5L3 11l6.5-2.5z"/>` },
-    { label:'Melhorias', value: melhorias.length, sub:'versões atualizadas', icon:`<path d="M3 12l4-4 4 4 6-6 4 4"/>` },
-    { label:'Em transporte', value: emTransporte.length, sub:'produção + trânsito', icon:`<path d="M3 16h13V7H3z"/><path d="M16 10h4l3 3v3h-7z"/><circle cx="7" cy="19" r="2"/><circle cx="18" cy="19" r="2"/>` },
-  ];
-  document.getElementById('kpiRow').innerHTML = cards.map(k => `
-    <div class="kpi ${k.hero?'hero':''}">
-      <div class="kpi-top"><div class="kpi-label">${k.label}</div><div class="kpi-icon">${iconSvg(k.icon)}</div></div>
-      <div class="kpi-value">${k.value}</div>
-      <div class="kpi-sub">${k.sub}</div>
-    </div>
-  `).join('');
+
+  // KPI 1 (hero): total de produtos
+  const kpiTotal = `
+    <div class="kpi hero">
+      <div class="kpi-top"><div class="kpi-label">Total de produtos</div><div class="kpi-icon">${iconSvg(ICONS.box)}</div></div>
+      <div class="kpi-value">${totalProdutos}</div>
+      <div class="kpi-sub">${upcoming.length} com chegada prevista</div>
+    </div>`;
+
+  // KPI 2: data prevista mais recente + subtítulo com o item
+  const kpiData = `
+    <div class="kpi">
+      <div class="kpi-top"><div class="kpi-label">Última chegada prevista</div><div class="kpi-icon">${iconSvg('<rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/>')}</div></div>
+      <div class="kpi-value" style="font-size:26px;">${maisDistante ? fmtBR(maisDistante.data) : '—'}</div>
+      <div class="kpi-sub" style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${maisDistante ? maisDistante.nome : 'sem chegadas futuras'}</div>
+    </div>`;
+
+  // KPI 3+4: total por status (ocupa os dois slots restantes, lista compacta)
+  const statusRows = statusEntries.map(([s,n]) => `
+    <div style="display:flex; align-items:center; justify-content:space-between; padding:5px 0; border-bottom:1px solid var(--border-soft);">
+      <span style="font-size:12.5px; color:var(--text-2); font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${s}</span>
+      <span style="font-family:var(--font-d); font-size:15px; font-weight:800; color:#fff;">${n}</span>
+    </div>`).join('');
+  const kpiStatus = `
+    <div class="kpi" style="grid-column:span 2;">
+      <div class="kpi-top"><div class="kpi-label">Total por status</div><div class="kpi-icon">${iconSvg('<path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/>')}</div></div>
+      <div style="margin-top:2px;">${statusRows || '<div class="kpi-sub">sem dados</div>'}</div>
+    </div>`;
+
+  document.getElementById('kpiRow').innerHTML = kpiTotal + kpiData + kpiStatus;
 }
 
 /* ============================================================
@@ -997,12 +1026,47 @@ function renderActivityChart(){
     const isPeak = k === peakKey && count > 0;
     const label = `${MONTH_NAMES[parseInt(m,10)-1].slice(0,3)}/${y.slice(2)}`;
     return `
-      <div class="bar-col">
+      <div class="bar-col" data-month="${k}" style="cursor:pointer;" title="Ver produtos de ${label}">
         ${isPeak ? `<div class="bar-tooltip">${label} · ${count}</div>` : ''}
         <div class="bar ${isPeak?'peak':''}" style="height:${heightPct}%;"></div>
         <div class="bar-label">${label}</div>
       </div>`;
   }).join('');
+
+  wrap.querySelectorAll('.bar-col[data-month]').forEach(el =>
+    el.addEventListener('click', () => openMonthPopup(el.dataset.month)));
+}
+
+/* Popup: produtos de um mês (produto, código, data) */
+function openMonthPopup(monthK){
+  const rows = DATA.filter(r => monthKey(r.data) === monthK).sort((a,b) => a.data.localeCompare(b.data));
+  const [y,m] = monthK.split('-');
+  const titulo = `${MONTH_NAMES[parseInt(m,10)-1]}/${y}`;
+  const linhas = rows.map(r => `
+    <div style="display:grid; grid-template-columns:1fr auto auto; gap:14px; align-items:center; padding:11px 0; border-bottom:1px solid var(--border-soft);">
+      <div style="min-width:0;">
+        <div style="font-size:13.5px; font-weight:700; color:#fff; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${r.nome}</div>
+      </div>
+      <div style="font-family:var(--font-m); font-size:11.5px; color:var(--text-3);">${r.codigo}</div>
+      <div style="font-size:12.5px; color:var(--text-2); font-variant-numeric:tabular-nums; white-space:nowrap;">${fmtBR(r.data)}</div>
+    </div>`).join('');
+
+  document.getElementById('detailModalInner').innerHTML = `
+    <button class="btn icon-only modal-close" id="closeDetail">✕</button>
+    <div class="detail-body">
+      <div class="detail-name">${titulo}</div>
+      <div class="detail-code">${rows.length} ${rows.length===1?'produto':'produtos'} neste mês</div>
+      <div style="margin-top:18px; max-height:52vh; overflow-y:auto;">
+        <div style="display:grid; grid-template-columns:1fr auto auto; gap:14px; padding-bottom:8px; font-size:10.5px; text-transform:uppercase; letter-spacing:.5px; color:var(--text-3); font-weight:700; border-bottom:1px solid var(--border);">
+          <div>Produto</div><div>Código</div><div>Data</div>
+        </div>
+        ${linhas || '<div class="hint" style="padding:16px 0;">Nenhum produto neste mês.</div>'}
+      </div>
+      <div class="detail-actions"><button class="btn primary" id="closeDetail2">Fechar</button></div>
+    </div>`;
+  document.getElementById('detailOverlay').classList.add('show');
+  document.getElementById('closeDetail').addEventListener('click', closeDetail);
+  document.getElementById('closeDetail2').addEventListener('click', closeDetail);
 }
 
 /* ============================================================
