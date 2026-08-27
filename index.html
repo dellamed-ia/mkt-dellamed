@@ -626,6 +626,15 @@ const STAGES = ['pedido','producao','transporte','chegada_br','cd','disponivel']
 const STAGE_LABELS = { pedido:'Pedido realizado', producao:'Produção', transporte:'Em transporte', chegada_br:'Chegada ao Brasil', cd:'CD Dellamed', disponivel:'Disponível' };
 const STAGE_STATUS = { pedido:'gray', producao:'gray', transporte:'amber', chegada_br:'amber', cd:'blue', disponivel:'green' };
 
+/* ============================================================
+   FONTE FIXA DA PLANILHA (embutida no painel)
+   O painel já abre sincronizando com esta planilha/aba, sem
+   ninguém precisar configurar nada. Para trocar no futuro,
+   basta editar as duas linhas abaixo.
+============================================================ */
+const FIXED_SHEET_URL = 'https://docs.google.com/spreadsheets/d/1NOWb0jReQTtEOEl4sQNzUu25IooXfTsi7fk09fNnL6E/edit?usp=sharing';
+const FIXED_SHEET_TAB = 'PRODUTOS CONSOLIDADOS';
+
 let DATA = [];
 let LAST_UPDATED = null, LAST_SYNC = null, SHEET_URL = null, SHEET_URL_RAW = null, SHEET_TAB = null, SYNC_ERROR = null, LAST_SYNC_SKIPPED = 0;
 let activeView = 'geral';
@@ -689,6 +698,14 @@ async function loadData(){
       else { DATA = parsed.rows||[]; LAST_UPDATED = parsed.lastUpdated||null; SHEET_URL = parsed.sheetUrl||null; SHEET_URL_RAW = parsed.sheetUrlRaw||null; SHEET_TAB = parsed.sheetTab||null; LAST_SYNC = parsed.lastSync||null; }
     } else { DATA=[]; LAST_UPDATED=null; SHEET_URL=null; LAST_SYNC=null; }
   } catch(e){ DATA=[]; LAST_UPDATED=null; SHEET_URL=null; LAST_SYNC=null; }
+
+  // Fonte fixa embutida: se ninguém configurou uma fonte ainda, usa a planilha padrão.
+  if(!SHEET_URL && FIXED_SHEET_URL){
+    SHEET_URL_RAW = FIXED_SHEET_URL;
+    SHEET_TAB = FIXED_SHEET_TAB || null;
+    SHEET_URL = normalizeSheetUrl(FIXED_SHEET_URL, FIXED_SHEET_TAB);
+  }
+
   renderAll();
   if(SHEET_URL) syncFromSheet(true);
 }
